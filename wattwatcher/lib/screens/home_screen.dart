@@ -46,12 +46,7 @@ class HomeScreen extends StatelessWidget {
             icon: const Icon(Icons.notifications_outlined),
             color: provider.alerts.isNotEmpty ? AppTheme.amber : AppTheme.textMuted,
             onPressed: () => _showAlerts(context, provider.alerts),
-          ),
-          IconButton(
-            icon: const Icon(Icons.settings_outlined),
-            color: AppTheme.textMuted,
-            onPressed: () => Navigator.pushNamed(context, '/settings'),
-          ),
+          )
         ],
       ),
       body: ListView(
@@ -144,7 +139,7 @@ class HomeScreen extends StatelessWidget {
   void _showAlerts(BuildContext context, List<String> alerts) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: AppTheme.surface,
+      backgroundColor: AppTheme.bg,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),

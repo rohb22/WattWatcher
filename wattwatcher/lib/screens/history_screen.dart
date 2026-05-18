@@ -152,9 +152,9 @@ class HistoryScreen extends StatelessWidget {
               margin: const EdgeInsets.only(bottom: 6),
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
-                color: AppTheme.surface,
+                color: AppTheme.bg,
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: AppTheme.border, width: 0.5),
+                border: Border.all(color: AppTheme.border, width: 1),
               ),
               child: Row(
                 children: [
@@ -170,7 +170,7 @@ class HistoryScreen extends StatelessWidget {
                     child: Text(
                       '${log.totalWatts.toStringAsFixed(0)} W  ·  ${log.voltage.toStringAsFixed(0)} V  ·  ${log.current.toStringAsFixed(2)} A',
                       style: TextStyle(
-                          color: AppTheme.textSecondary, fontSize: 12),
+                          color: AppTheme.accent, fontSize: 12),
                     ),
                   ),
                   Text(

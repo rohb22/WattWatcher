@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
 
@@ -15,13 +17,21 @@ import 'package:mqtt_client/mqtt_server_client.dart';
 // ─────────────────────────────────────────────────────────────────────────────
 
 class MqttService extends ChangeNotifier {
-  static const String _clientId = 'wattwatcher_flutter';
+  // ── Read everything from .env — no hardcoded secrets anywhere ────────────
+  static String get _defaultHost =>
+      dotenv.env['MQTT_HOST'] ?? 'localhost';
+  static int get _defaultPort =>
+      int.tryParse(dotenv.env['MQTT_PORT'] ?? '8883') ?? 8883;
+  static String get _defaultUsername =>
+      dotenv.env['MQTT_USERNAME'] ?? '';
+  static String get _defaultPassword =>
+      dotenv.env['MQTT_PASSWORD'] ?? '';
+
+  // Unique client ID per device so two phones don't kick each other off
+  static final String _clientId =
+      'wattwatcher_flutter_${DateTime.now().millisecondsSinceEpoch}';
 
   MqttServerClient? _client;
-  String _brokerHost = 'broker.hivemq.com'; // default public broker for testing
-  int _brokerPort = 	8000;
-  String _username = '';
-  String _password = '';
 
   bool _isConnected = false;
   String _connectionStatus = 'Disconnected';
@@ -32,23 +42,25 @@ class MqttService extends ChangeNotifier {
   Stream<Map<String, dynamic>> get messageStream => _messageController.stream;
   bool get isConnected => _isConnected;
   String get connectionStatus => _connectionStatus;
-  String get brokerHost => _brokerHost;
 
   // ── Connect ───────────────────────────────────────────────────────────────
   Future<bool> connect({
-    required String host,
-    int port = 1883,
-    String username = '',
-    String password = '',
+    String? host,
+    int? port,
+    String? username,
+    String? password,
   }) async {
-    _brokerHost = host;
-    _brokerPort = port;
-    _username = username;
-    _password = password;
+    // Caller can override (e.g. from a settings screen); otherwise use .env
+    final resolvedHost     = host     ?? _defaultHost;
+    final resolvedPort     = port     ?? _defaultPort;
+    final resolvedUsername = username ?? _defaultUsername;
+    final resolvedPassword = password ?? _defaultPassword;
 
     _setStatus('Connecting…');
 
-    _client = MqttServerClient.withPort(host, _clientId, port);
+    _client = MqttServerClient.withPort(resolvedHost, _clientId, resolvedPort);
+    _client!.securityContext = SecurityContext.defaultContext;
+    _client!.secure = true;
     _client!.logging(on: kDebugMode);
     _client!.keepAlivePeriod = 30;
     _client!.autoReconnect = true;
@@ -56,14 +68,11 @@ class MqttService extends ChangeNotifier {
     _client!.onDisconnected = _onDisconnected;
     _client!.onAutoReconnect = () => _setStatus('Reconnecting…');
 
+    // HiveMQ always requires credentials — chain so nothing is discarded
     final connMsg = MqttConnectMessage()
         .withClientIdentifier(_clientId)
-        .withWillQos(MqttQos.atLeastOnce)
-        .startClean();
-
-    if (username.isNotEmpty) {
-      connMsg.authenticateAs(username, password);
-    }
+        .startClean()
+        .authenticateAs(resolvedUsername, resolvedPassword);
 
     _client!.connectionMessage = connMsg;
 
@@ -72,7 +81,7 @@ class MqttService extends ChangeNotifier {
       return _isConnected;
     } catch (e) {
       _setStatus('Error: $e');
-      _client!.disconnect();
+      _client?.disconnect();
       return false;
     }
   }

@@ -42,6 +42,18 @@ class WattWatcherProvider extends ChangeNotifier {
   }) {
     _loadFromHive();
     _listenToMqtt();
+    _connectMqtt(); // ← was missing; nothing connected without this
+  }
+
+  // ── Connect using saved (or default) broker settings ──────────────────────
+  Future<void> _connectMqtt() async {
+    final settings = hiveService.getBrokerSettings();
+    await mqttService.connect(
+      host: settings['host'] as String,
+      port: settings['port'] as int,
+      username: settings['username'] as String,
+      password: settings['password'] as String,
+    );
   }
 
   // ── Load cached state ─────────────────────────────────────────────────────
