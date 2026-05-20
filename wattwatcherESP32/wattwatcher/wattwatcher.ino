@@ -71,7 +71,10 @@ void setup() {
   delay(1000);
 
   pinMode(ACS_PIN_1, INPUT);
-  pinMode(POT_PIN_2, INPUT);
+  pinMode(ACS_PIN_2, INPUT);
+  pinMode(ACS_PIN_3, INPUT);
+  pinMode(ACS_PIN_4, INPUT);
+
   pinMode(ZMPT_PIN,  INPUT);
 
   relayBegin();
@@ -102,9 +105,9 @@ void loop() {
   delay(2);
 
   slotCurrents[2] = relayIsOn(3) ? getACCurrentRMS(ACS_PIN_3, CURRENT_CALIBRATION_1) : 0.0f;
-  delay(2)
+  delay(2);
   slotCurrents[3] = relayIsOn(4) ? getACCurrentRMS(ACS_PIN_4, CURRENT_CALIBRATION_1) : 0.0f;
-  delay(2)
+  delay(2);
 
   liveVoltage = getACVoltageRMS();
 

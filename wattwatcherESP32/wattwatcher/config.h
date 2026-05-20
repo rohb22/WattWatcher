@@ -9,7 +9,7 @@
 #endif
 
 #ifndef MQTT_USER
-  #define MQTT_USER "esp32-project"
+  #define MQTT_USER "esp32-test"
 #endif
 
 #ifndef MQTT_PASS
